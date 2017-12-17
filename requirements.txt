@@ -1,0 +1,8 @@
+requests
+pytils
+lxml
+selenium
+dateparser
+pyTelegramBotAPI
+
+pytest
