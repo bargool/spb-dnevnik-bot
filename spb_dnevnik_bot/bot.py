@@ -4,14 +4,21 @@ from datetime import timedelta, date
 
 import telebot
 
-from spb_dnevnik_bot.parser import Parser
 from spb_dnevnik_bot.__about__ import __version__
+from spb_dnevnik_bot.parser import Parser
+
+logging.getLogger('urllib3').propagate = False
+
+logger = logging.getLogger(__name__)
 
 TOKEN = os.environ.get('SPB_DNEVNIK_BOT_TOKEN')
 bot = telebot.TeleBot(TOKEN)
+
+
 ESIA_LOGIN = os.environ.get('SPB_DNEVNIK_BOT_ESIA_LOGIN')
 ESIA_PASSWORD = os.environ.get('SPB_DNEVNIK_BOT_ESIA_PASSWORD')
 
+# TODO: Handle admins
 
 HELP_MESSAGE = f'''
 Данный бот служит для информирования о событиях на сайте https://petersburgedu.ru,
@@ -20,13 +27,13 @@ HELP_MESSAGE = f'''
 /help - Повторить данное сообщение
 /today - Информация за сегодня
 /tomorrow - Информация по завтрашнему дню
-version = {__version__}
+Версия бота: {__version__}
 '''.strip()
 
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
-    logging.info("Got welcome message %s" % message)
+    logger.info("Got welcome message from user %s", message.from_user)
     bot.send_message(message.chat.id, HELP_MESSAGE)
 
 
@@ -50,7 +57,7 @@ def get_tomorrow(message):
     create_message(message, diary_date=date.today() + timedelta(days=1))
 
 
-def create_message(message, diary_date):
+def create_message(message, diary_date: date) -> None:
     chat_id = message.chat.id
     bot.send_message(chat_id, "Подождите...")
     bot.send_chat_action(chat_id, 'typing')
@@ -76,11 +83,14 @@ def create_message(message, diary_date):
         bot.send_message(chat_id, "\n".join(messages), parse_mode='Markdown')
     except:
         bot.send_message(chat_id, "Произошла ошибка")
-        logging.exception("Ошибка при обработке запроса %s", message)
+        logger.exception("Ошибка при обработке запроса %s", message)
+
+
+def start_bot():
+    logger.info(bot.get_me())
+    logger.info("Waiting for messages")
+    bot.polling()
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    logging.info(bot.get_me())
-    logging.info("Waiting for messages")
-    bot.polling()
+    start_bot()
