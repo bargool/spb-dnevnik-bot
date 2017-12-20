@@ -3,6 +3,7 @@ import os
 from datetime import timedelta, date
 
 import telebot
+from selenium.common.exceptions import TimeoutException
 
 from spb_dnevnik_bot.__about__ import __version__
 from spb_dnevnik_bot.parser import Parser
@@ -32,32 +33,32 @@ HELP_MESSAGE = f'''
 
 
 @bot.message_handler(commands=['start', 'help'])
-def send_welcome(message):
+def send_welcome(message: 'telebot.types.Message') -> None:
     logger.info("Got welcome message from user %s", message.from_user)
     bot.send_message(message.chat.id, HELP_MESSAGE)
 
 
 @bot.message_handler(commands=['marks', ])
-def get_marks(message):
+def get_marks(message: 'telebot.types.Message') -> None:
     bot.send_message(message.chat.id, "Я пока не научился отвечать на эту команду")
 
 
 @bot.message_handler(commands=['homeworks', ])
-def get_homeworks(message):
+def get_homeworks(message: 'telebot.types.Message') -> None:
     bot.send_message(message.chat.id, "Я пока не научился отвечать на эту команду")
 
 
 @bot.message_handler(commands=['today', ])
-def get_today(message):
+def get_today(message: 'telebot.types.Message') -> None:
     create_message(message, diary_date=date.today())
 
 
 @bot.message_handler(commands=['tomorrow', ])
-def get_tomorrow(message):
+def get_tomorrow(message: 'telebot.types.Message') -> None:
     create_message(message, diary_date=date.today() + timedelta(days=1))
 
 
-def create_message(message, diary_date: date) -> None:
+def create_message(message: 'telebot.types.Message', diary_date: date) -> None:
     chat_id = message.chat.id
     bot.send_message(chat_id, "Подождите...")
     bot.send_chat_action(chat_id, 'typing')
@@ -81,12 +82,15 @@ def create_message(message, diary_date: date) -> None:
             messages.append(m)
         messages.append("```")
         bot.send_message(chat_id, "\n".join(messages), parse_mode='Markdown')
+    except TimeoutException:
+        bot.send_message(chat_id, "Произошла ошибка, сайт дневника отвечает медленно. Попробуйте позже")
+        logger.exception("Ошибка при обработке запроса %s", message)
     except:
         bot.send_message(chat_id, "Произошла ошибка")
         logger.exception("Ошибка при обработке запроса %s", message)
 
 
-def start_bot():
+def start_bot() -> None:
     logger.info(bot.get_me())
     logger.info("Waiting for messages")
     bot.polling()

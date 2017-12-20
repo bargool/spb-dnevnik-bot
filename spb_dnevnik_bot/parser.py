@@ -32,7 +32,7 @@ class Day:
         self.date = the_date
         self.lessons: List[Lesson] = []
 
-    def add_lesson(self, lesson: Lesson):
+    def add_lesson(self, lesson: Lesson) -> None:
         self.lessons.append(lesson)
 
 
@@ -57,7 +57,7 @@ class Parser:
         self.driver.get(self.login_url)
         e = self.driver.find_element_by_class_name('esia-login')
         e.click()
-        username = WebDriverWait(self.driver, 4).until(
+        username = WebDriverWait(self.driver, 10).until(
             ec.presence_of_element_located((By.ID, 'mobileOrEmail'))
         )
         logger.debug("Got login page %s", self.driver.current_url)
@@ -69,7 +69,7 @@ class Parser:
     def get_timetable_page(self) -> str:
         """Get time table page text"""
         self.driver.get(f'{self.base_url}/timetable?date={self.diary_date:%d.%m.%Y}')
-        WebDriverWait(self.driver, 4).until(
+        WebDriverWait(self.driver, 10).until(
             ec.presence_of_element_located((By.CLASS_NAME, self.days_table_class))
         )
         logger.debug("Got timetable page at %s", self.driver.current_url)
@@ -106,7 +106,7 @@ class Parser:
         return days
 
     @staticmethod
-    def xpath_text(xelement, xpath):
+    def xpath_text(xelement, xpath: str) -> Optional[str]:
         text = xelement.xpath(f"{xpath}/text()")
         result = ', '.join(filter(bool, map(methodcaller('strip'), text)))
         result = result.replace('\n', ', ')
@@ -117,7 +117,7 @@ class Parser:
         begin, end = [dateparser.parse(s) for s in range_str.split('-')]
         return begin.date(), end.date()
 
-    def get_diary(self):
+    def get_diary(self) -> List[Lesson]:
         logger.debug("User needs %s", self.diary_date)
         day = next(day for day in self.get_timetable() if day.date == self.diary_date)
         return day.lessons
