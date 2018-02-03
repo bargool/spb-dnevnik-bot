@@ -41,10 +41,12 @@ DAYS_TABLE_CLASS = 'week-lessons'
 
 class LoginSession:
     def __init__(self, username: str, password: str) -> None:
+        logger.info("Starting to parse with %s/%s", username, password)
         self.username = username
         self.password = password
         self.base_url = 'https://petersburgedu.ru/dnevnik'
         self.timetable_url = f'{self.base_url}/timetable'
+        self.login_url = 'https://petersburgedu.ru/user/auth/login'
 
     def login(self) -> None:
         raise NotImplemented
@@ -59,7 +61,6 @@ class EsiaSession(LoginSession):
         super().__init__(username, password)
         self.driver = webdriver.PhantomJS(phantomjs_executable)
         self.driver.set_window_size(1120, 550)  # there was some bug in driver
-        self.login_url = 'https://petersburgedu.ru/user/auth/login'
 
     def login(self) -> None:
         """Trying to login with esia"""
@@ -86,13 +87,9 @@ class EsiaSession(LoginSession):
 
 
 class Parser:
-    def __init__(self, username: str, password: str, diary_date: date = None) -> None:
-        logger.info("Starting to parse with %s/%s", username, password)
-        self.session = EsiaSession(username, password)
+    def __init__(self, login_session: LoginSession, diary_date: date = None) -> None:
+        self.session = login_session
         self.diary_date = diary_date or date.today()
-
-    def login(self) -> None:
-        self.session.login()
 
     def get_timetable(self) -> List[Day]:
         """Get timetable page object as list of Day"""
