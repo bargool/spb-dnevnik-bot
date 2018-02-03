@@ -36,21 +36,30 @@ class Day:
         self.lessons.append(lesson)
 
 
-class Parser:
-    days_table_class = 'week-lessons'
+DAYS_TABLE_CLASS = 'week-lessons'
 
-    def __init__(self, username: str, password: str, diary_date: date = None) -> None:
-        logger.info("Starting to parse with %s/%s", username, password)
+
+class LoginSession:
+    def __init__(self, username: str, password: str) -> None:
         self.username = username
         self.password = password
-        self.diary_date = diary_date or date.today()
+        self.base_url = 'https://petersburgedu.ru/dnevnik'
+        self.timetable_url = f'{self.base_url}/timetable'
 
+    def login(self) -> None:
+        raise NotImplemented
+
+    def get_timetable_page(self, dairy_date: date) -> str:
+        """Get time table page text"""
+        raise NotImplemented
+
+
+class EsiaSession(LoginSession):
+    def __init__(self, username: str, password: str) -> None:
+        super().__init__(username, password)
         self.driver = webdriver.PhantomJS(phantomjs_executable)
         self.driver.set_window_size(1120, 550)  # there was some bug in driver
-
-        self.base_url = 'https://petersburgedu.ru/dnevnik'
         self.login_url = 'https://petersburgedu.ru/user/auth/login'
-        self.timetable_url = f'{self.base_url}/timetable'
 
     def login(self) -> None:
         """Trying to login with esia"""
@@ -66,19 +75,29 @@ class Parser:
         e = self.driver.find_element_by_xpath('//div[@class="line-btns"]/button')
         e.click()
 
-    def get_timetable_page(self) -> str:
+    def get_timetable_page(self, dairy_date: date) -> str:
         """Get time table page text"""
-        self.driver.get(f'{self.base_url}/timetable?date={self.diary_date:%d.%m.%Y}')
+        self.driver.get(f'{self.base_url}/timetable?date={dairy_date:%d.%m.%Y}')
         WebDriverWait(self.driver, 10).until(
-            ec.presence_of_element_located((By.CLASS_NAME, self.days_table_class))
+            ec.presence_of_element_located((By.CLASS_NAME, DAYS_TABLE_CLASS))
         )
         logger.debug("Got timetable page at %s", self.driver.current_url)
         return self.driver.page_source
 
+
+class Parser:
+    def __init__(self, username: str, password: str, diary_date: date = None) -> None:
+        logger.info("Starting to parse with %s/%s", username, password)
+        self.session = EsiaSession(username, password)
+        self.diary_date = diary_date or date.today()
+
+    def login(self) -> None:
+        self.session.login()
+
     def get_timetable(self) -> List[Day]:
         """Get timetable page object as list of Day"""
-        page_xml = fromstring(self.get_timetable_page())
-        days_table = page_xml.xpath(f'//table[@class="{self.days_table_class}"]')[0]
+        page_xml = fromstring(self.session.get_timetable_page(self.diary_date))
+        days_table = page_xml.xpath(f'//table[@class="{DAYS_TABLE_CLASS}"]')[0]
         days_count = len(days_table.xpath('thead/tr/th'))
         logger.debug("Days on timetable %s", days_count)
         begin_date, end_date = self.get_date_range(page_xml)
