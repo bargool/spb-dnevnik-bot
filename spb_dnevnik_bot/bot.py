@@ -6,7 +6,7 @@ import telebot
 from selenium.common.exceptions import TimeoutException
 
 from spb_dnevnik_bot.__about__ import __version__
-from spb_dnevnik_bot.parser import Parser, EsiaSession
+from spb_dnevnik_bot.parser import Parser, EsiaSession, RegularSession
 
 logging.getLogger('urllib3').propagate = False
 
@@ -65,7 +65,7 @@ def create_message(message: 'telebot.types.Message', diary_date: date) -> None:
     if diary_date.weekday() == 6:
         diary_date += timedelta(days=1)
     try:
-        session = EsiaSession(ESIA_LOGIN, ESIA_PASSWORD)
+        session = RegularSession(ESIA_LOGIN, ESIA_PASSWORD)
         session.login()
         parser = Parser(session, diary_date)
         weekdays = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота']

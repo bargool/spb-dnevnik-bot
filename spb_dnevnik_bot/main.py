@@ -11,8 +11,8 @@ def main():
     parser.add_argument('--version', action='version', version='%(prog)s ' + __about__.__version__)
     parser.add_argument('-d', '--debug', action='store_true', help='debug mode')
     parser.add_argument('token', help='telegram bot token')
-    parser.add_argument('login', help='esia login')
-    parser.add_argument('password', help='esia password')
+    parser.add_argument('login', help='login')
+    parser.add_argument('password', help='password')
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO)

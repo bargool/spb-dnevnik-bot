@@ -5,6 +5,7 @@ from operator import methodcaller
 from typing import Optional, NamedTuple, Tuple, List
 
 import dateparser
+import requests
 from lxml.html import fromstring
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -45,15 +46,34 @@ class LoginSession:
         self.username = username
         self.password = password
         self.base_url = 'https://petersburgedu.ru/dnevnik'
-        self.timetable_url = f'{self.base_url}/timetable'
+        self.timetable_url_base = f'{self.base_url}/timetable'
         self.login_url = 'https://petersburgedu.ru/user/auth/login'
 
     def login(self) -> None:
         raise NotImplemented
 
+    def get_timetable_url(self, dairy_date: date) -> str:
+        return f'{self.timetable_url_base}?date={dairy_date:%d.%m.%Y}'
+
     def get_timetable_page(self, dairy_date: date) -> str:
         """Get time table page text"""
         raise NotImplemented
+
+
+class RegularSession(LoginSession):
+    def __init__(self, username: str, password: str) -> None:
+        super().__init__(username, password)
+        self.session = requests.session()
+
+    def login(self) -> None:
+        self.session.post(self.login_url,
+                          data={'Login': self.username,
+                                'Password': self.password,
+                                'doLogin': 1})
+
+    def get_timetable_page(self, dairy_date: date) -> str:
+        response = self.session.get(self.get_timetable_url(dairy_date))
+        return response.text
 
 
 class EsiaSession(LoginSession):
@@ -78,7 +98,7 @@ class EsiaSession(LoginSession):
 
     def get_timetable_page(self, dairy_date: date) -> str:
         """Get time table page text"""
-        self.driver.get(f'{self.base_url}/timetable?date={dairy_date:%d.%m.%Y}')
+        self.driver.get(self.get_timetable_url(dairy_date))
         WebDriverWait(self.driver, 10).until(
             ec.presence_of_element_located((By.CLASS_NAME, DAYS_TABLE_CLASS))
         )
