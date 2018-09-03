@@ -1,8 +1,8 @@
-import os
-import logging
 import argparse
+import logging
 
 from spb_dnevnik_bot import __about__
+from spb_dnevnik_bot.bot import create_updater, start_updater
 
 
 def main():
@@ -13,17 +13,13 @@ def main():
     parser.add_argument('token', help='telegram bot token')
     parser.add_argument('login', help='login')
     parser.add_argument('password', help='password')
+    parser.add_argument('--esia', action='store_true', help='use ESIA auth instead of regular')
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO)
 
-    # bot will read config from environment
-    os.environ['SPB_DNEVNIK_BOT_TOKEN'] = args.token
-    os.environ['SPB_DNEVNIK_BOT_ESIA_LOGIN'] = args.login
-    os.environ['SPB_DNEVNIK_BOT_ESIA_PASSWORD'] = args.password
-
-    from spb_dnevnik_bot.bot import start_bot
-    start_bot()
+    updater = create_updater(args)
+    start_updater(updater)
 
 
 if __name__ == '__main__':

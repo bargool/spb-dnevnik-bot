@@ -1,25 +1,27 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import io
-import os
+from pathlib import Path
 
 from setuptools import find_packages, setup
 
-here = os.path.abspath(os.path.dirname(__file__))
+here = Path(__file__).parent
 
 REQUIRED = [
+    'requests',
+    'pytils',
     'lxml',
     'selenium',
     'dateparser',
-    'pyTelegramBotAPI',
+    'python-telegram-bot',
 ]
 
-with io.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
+with io.open(here / 'README.rst', encoding='utf-8') as f:
     long_description = '\n' + f.read()
 
 about = {}
-with open("spb_dnevnik_bot/__about__.py") as fp:
+with open(here / 'spb_dnevnik_bot' / '__about__.py') as fp:
     exec(fp.read(), about)
 
 setup(

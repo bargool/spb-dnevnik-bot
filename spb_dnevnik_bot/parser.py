@@ -3,6 +3,7 @@ import os
 from datetime import date, timedelta
 from operator import methodcaller
 from typing import Optional, NamedTuple, Tuple, List
+from pathlib import Path
 
 import dateparser
 import requests
@@ -15,8 +16,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 logger = logging.getLogger(__name__)
 logging.getLogger('selenium').propagate = False
 
-basedir = os.path.dirname(__file__)
-phantomjs_executable = os.path.join(basedir, 'lib', 'phantomjs')
+basedir = Path(__file__).parent
+phantomjs_executable = basedir / 'lib' / 'phantomjs'
 
 
 class Lesson(NamedTuple):
@@ -157,3 +158,7 @@ class Parser:
         logger.debug("User needs %s", self.diary_date)
         day = next(day for day in self.get_timetable() if day.date == self.diary_date)
         return day.lessons
+
+
+class TimeoutException(Exception):
+    pass
