@@ -19,6 +19,7 @@ HELP_MESSAGE = f'''
 если конкретно, то об оценках и домашних заданиях.
 Список команд:
 /help - Повторить данное сообщение
+/yesterday - Информация по вчерашнему дню
 /today - Информация за сегодня
 /tomorrow - Информация по завтрашнему дню
 Версия бота: {__version__}
@@ -28,6 +29,10 @@ HELP_MESSAGE = f'''
 def send_welcome(bot, update: Update) -> None:
     logger.info("Got welcome message from user %s", update.message.from_user)
     bot.send_message(chat_id=update.message.chat_id, text=HELP_MESSAGE)
+
+
+def get_yesterday(bot, update: Update) -> None:
+    create_message(bot, update, diary_date=date.today() - timedelta(days=1))
 
 
 def get_today(bot, update: Update) -> None:
@@ -45,17 +50,17 @@ def create_message(bot, update: Update, diary_date: date) -> None:
     if diary_date.weekday() == 6:
         diary_date += timedelta(days=1)
     try:
-        bot.session.login()
+        # bot.session.login()
         parser = Parser(bot.session, diary_date)
         weekdays = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота']
         messages = ["Информация по _{}, {}_".format(diary_date.strftime('%d.%m.%Y'),
                                                     weekdays[diary_date.weekday()]),
                     "```text"]
-        for idx, l in enumerate(parser.get_diary(), 1):
-            name = l.name or 'Нет урока'
-            if l.mark or l.homework:
-                mark = l.mark or '-'
-                hw = l.homework or '-'
+        for idx, lesson in enumerate(parser.get_diary(), 1):
+            name = lesson.name or 'Нет урока'
+            if lesson.mark or lesson.homework:
+                mark = lesson.mark or '-'
+                hw = lesson.homework or '-'
                 m = f'{idx}. {name}: отм: {mark}; д/з: {hw}'
             else:
                 m = f'{idx}. {name}'
@@ -63,9 +68,9 @@ def create_message(bot, update: Update, diary_date: date) -> None:
         messages.append("```")
         bot.send_message(chat_id, "\n".join(messages), parse_mode='Markdown')
     except (TimeoutException, Timeout):
-        bot.send_message(chat_id, "Произошла ошибка, сайт дневника отвечает медленно. Попробуйте позже")
+        bot.send_message(chat_id, "Произошла ошибка. Попробуйте позже")
         logger.exception("Ошибка при обработке запроса %s", update.message)
-    except:
+    except Exception:
         bot.send_message(chat_id, "Произошла ошибка")
         logger.exception("Ошибка при обработке запроса %s", update.message)
 
@@ -75,3 +80,4 @@ def register_handlers(dispatcher: Dispatcher):
     dispatcher.add_handler(CommandHandler('help', send_welcome))
     dispatcher.add_handler(CommandHandler('today', get_today))
     dispatcher.add_handler(CommandHandler('tomorrow', get_tomorrow))
+    dispatcher.add_handler(CommandHandler('yesterday', get_yesterday))

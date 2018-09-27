@@ -1,9 +1,8 @@
 import logging
-import os
 from datetime import date, timedelta
 from operator import methodcaller
-from typing import Optional, NamedTuple, Tuple, List
 from pathlib import Path
+from typing import Optional, NamedTuple, Tuple, List
 
 import dateparser
 import requests
@@ -96,6 +95,8 @@ class EsiaSession(LoginSession):
         self.driver.find_element_by_id('password').send_keys(self.password)
         e = self.driver.find_element_by_xpath('//div[@class="line-btns"]/button')
         e.click()
+        logger.debug("Found and clicked login button")
+        logger.debug(f"Now we at {self.driver.current_url}")
 
     def get_timetable_page(self, dairy_date: date) -> str:
         """Get time table page text"""

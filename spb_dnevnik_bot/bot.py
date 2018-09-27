@@ -20,6 +20,7 @@ class DnevnikBot(Bot):
 def create_updater(args) -> Updater:
     session_cls = EsiaSession if args.esia else RegularSession
     session = session_cls(args.login, args.password)
+    session.login()
     bot = DnevnikBot(token=args.token, session=session)
     updater = Updater(bot=bot)
     register_handlers(updater.dispatcher)
