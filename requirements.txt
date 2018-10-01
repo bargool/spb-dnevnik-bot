@@ -3,6 +3,6 @@ pytils
 lxml
 selenium
 dateparser
-pyTelegramBotAPI
+python-telegram-bot
 
 pytest
