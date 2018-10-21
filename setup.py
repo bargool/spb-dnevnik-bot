@@ -8,14 +8,8 @@ from setuptools import find_packages, setup
 
 here = Path(__file__).parent
 
-REQUIRED = [
-    'requests',
-    'pytils',
-    'lxml',
-    'selenium',
-    'dateparser',
-    'python-telegram-bot',
-]
+with open(here / 'requirements.txt', encoding='utf-8') as reqs:
+    required = reqs.read().splitlines()
 
 with io.open(here / 'README.rst', encoding='utf-8') as f:
     long_description = '\n' + f.read()
@@ -36,7 +30,7 @@ setup(
     entry_points={
         'console_scripts': ['dnevnik-bot=spb_dnevnik_bot.main:main'],
     },
-    install_requires=REQUIRED,
+    install_requires=required,
     include_package_data=True,
     license='MIT',
     classifiers=[
@@ -44,6 +38,7 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy'
     ],
