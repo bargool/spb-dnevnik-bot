@@ -5,9 +5,11 @@ Telegram bot for school journal at petersburgedu.ru
 
 Телеграм-бот для работы с оценками в школьном электронном дневнике https://petersburgedu.ru
 
+Для установки требуется python не ниже 3.6
+
 Установка::
 
-    pip install https://github.com/bargool/spb-dnevnik-bot/archive/master.zip
+    pip install spb-dnevnik-bot
 
 Запуск::
 
